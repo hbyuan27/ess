@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/jee 
+        http://www.springframework.org/schema/jee/spring-jee-4.0.xsd">
+
+	<context:component-scan base-package="hcm.ess">
+		<context:include-filter type="regex"
+			expression="..*.controller.*" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+
+	<mvc:view-controller path="/" view-name="redirect:/index" />
+	<mvc:view-controller path="/index" view-name="index" />
+	<mvc:view-controller path="/denied" view-name="access_denied" />
+	<mvc:view-controller path="/invalid" view-name="invalid_company" />
+	<mvc:view-controller path="/companyinfo" view-name="company_info" />
+
+	<mvc:annotation-driven />
+	
+	<bean
+		class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="ignoreAcceptHeader" value="true" />
+		<property name="order" value="1" />
+		<property name="defaultContentType" value="text/html" />
+
+		<!-- xxx.json => application/json -->
+		<property name="mediaTypes">
+			<map>
+				<entry key="xml" value="application/xml" />
+				<entry key="json" value="application/json" />
+			</map>
+		</property>
+		<property name="favorParameter" value="false" />
+		<property name="defaultViews">
+			<list>
+				<!-- for application/json -->
+				<bean
+					class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+				<!-- for application/xml -->
+				<bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+					<property name="marshaller" ref="xstreamMarshaller" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Fix security issue -->
+	<bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+		<property name="converters">
+			<list>
+				<bean class="org.springframework.oxm.xstream.CatchAllConverter" />
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="2" />
+	</bean>
+
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="order" value="3" />
+		<property name="prefix">
+			<value>/views/</value>
+		</property>
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+		<property name="redirectHttp10Compatible" value="false" />
+	</bean>
+
+</beans>
